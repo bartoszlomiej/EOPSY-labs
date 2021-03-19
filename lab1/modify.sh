@@ -35,8 +35,8 @@ traverse_directories () {
 			fi
 			filename=`echo $f | cut -f1 -d '.' | tr $option`
 
-			echo $filename$dot$fileextension
-			#mv $f $filename
+			newname=$filename$dot$fileextension
+			mv $f $newname
 		fi
 	done
 }
