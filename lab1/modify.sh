@@ -25,9 +25,17 @@ traverse_directories () {
 		if [ -d "$f" ]; then
 			echo $f #tutaj jest directory
 		else
-			filename=`echo $f | cut -f1 -d '.' #| tr $option`
-			fileextension=`echo ${f##*.}  #| cut -f2 -d '.'` 
-			echo $filename'.'$fileextension
+			filename=`echo $f | cut -f1 -d '.'` #| tr $option`
+			fileextension=`echo ${f##*.}`  #| cut -f2 -d '.'` 
+			if [[ $filename == $fileextension ]]; then
+				fileextension=""
+				dot=""
+			else
+				dot="."
+			fi
+			filename=`echo $f | cut -f1 -d '.' | tr $option`
+
+			echo $filename$dot$fileextension
 			#mv $f $filename
 		fi
 	done
