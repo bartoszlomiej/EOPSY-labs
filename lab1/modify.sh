@@ -11,14 +11,11 @@ do
     esac
 done
 
-#echo $option
-#echo $recursion
-
 #find -depth -type f //this command is used for finding files recursively
 
 #find -depth -type f -exec tr $option {} \; #to change files names there is a need to use mv!
 
-find $recursion -type f | tr $option
+#find $recursion -type f | tr $option
 
 traverse_directories () {
 	for f in *; do
