@@ -59,7 +59,7 @@ traverse () {
 				filename=`basename $file | cut -f1 -d '.' | tr $option`
 	
 				newname=$filename$dot$fileextension
-				mv `basename $file` $newname #here is an error - the mv command runs in parent directory
+				mv $a/`basename $file` $a/$newname #here is an error - the mv command runs in parent directory
 			fi
 		done
 	done
