@@ -38,6 +38,32 @@ traverse_directories () {
 	done
 }
 
-traverse_directories
+#traverse_directories
+
+traverse () {
+	local a file #a is the first argument of a function. The a is used instead of $1 as it is impossible to iterate over $1
+	for a; do
+		for file in "$a"/*; do
+			if [[ -d $file ]]; then
+				traverse "$file"
+			else
+		#		basename $file
+				filename=`basename $file | cut -f1 -d '.'` #| tr $option`
+				fileextension=`basename ${file##*.}`  #| cut -f2 -d '.'` 
+				if [[ $filename == $fileextension ]]; then
+					fileextension=""
+					dot=""
+				else
+					dot="."
+				fi
+				filename=`basename $file | cut -f1 -d '.' | tr $option`
+	
+				newname=$filename$dot$fileextension
+				mv `basename $file` $newname #here is an error - the mv command runs in parent directory
+			fi
+		done
+	done
+}
+traverse `pwd` 
 
 #important TODOS: 1) get to know how to list all files in that way, that it is possible to use tr command, and further use the mv command (mv oldname NEWNAME), where NEWNAME is the output of the tr, and oldname is input to tr
