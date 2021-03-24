@@ -1,8 +1,7 @@
 TODO:
--recursively call the function traverse_directories
 -make it work with the .tar.gz2 file extension
 -take care about sed
 -make it impossible to use -lu as it makes no sense
 -create file modify_examples.sh
 -create very brief --help
--:)
+-remove the information if the file was not moved

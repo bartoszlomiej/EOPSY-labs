@@ -2,12 +2,13 @@
 
 option="non empty"
 recursion="False"
-while getopts :lur flag #problem -> it is possible to make -lu flag! which is an error
+while getopts ":lur:h:" flag #problem -> it is possible to make -lu flag! which is an error
 do
     case "${flag}" in #remember to make it impossible to choose -lu
 	l) option="[:upper:] [:lower:]";; #performing lowering the letter
 	u) option="[:lower:] [:upper:]";; #performing uppering the letter
 	r) recursion="True" ;; #performing l/u recursively
+	h) echo "here the help will be printed"
     esac
 done
 
@@ -34,10 +35,13 @@ traverse () {
 				else
 					dot="."
 				fi
-				filename=`basename $file | cut -f1 -d '.' | tr $option`
+				filename=`basename $file`
+				filename2=`basename $file | cut -f1 -d '.' | tr $option`
 	
-				newname=$filename$dot$fileextension
-				mv $a/`basename $file` $a/$newname #here is an error - the mv command runs in parent directory
+				newname=$filename2$dot$fileextension
+				if [[ $filename != $newname ]]; then
+					mv $a/`basename $file` $a/$newname
+				fi
 			fi
 		done
 	done
