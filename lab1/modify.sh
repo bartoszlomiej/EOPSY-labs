@@ -2,13 +2,25 @@
 
 option="non empty"
 recursion="False"
-while getopts ":lur:h:" flag #problem -> it is possible to make -lu flag! which is an error
+
+Help() {
+	echo "This program modifies the file names to upper/lower letters."
+	echo "Usage of flags:"
+	echo "-l	lowering the file names in current directory"
+	echo "-u	uppering the file names in current directory"
+	echo "add additonaly flag -r to do it recursively in all directories"
+	echo "example:"
+	echo "modify -ur		uppering all file names in recursively from current directory"
+	
+}
+
+while getopts ":lur:h" flag #problem -> it is possible to make -lu flag! which is an error
 do
     case "${flag}" in #remember to make it impossible to choose -lu
 	l) option="[:upper:] [:lower:]";; #performing lowering the letter
 	u) option="[:lower:] [:upper:]";; #performing uppering the letter
 	r) recursion="True" ;; #performing l/u recursively
-	h) echo "here the help will be printed"
+	h) Help
     esac
 done
 
@@ -35,11 +47,10 @@ traverse () {
 				else
 					dot="."
 				fi
-				filename=`basename $file`
-				filename2=`basename $file | cut -f1 -d '.' | tr $option`
+				filename=`basename $file | cut -f1 -d '.' | tr $option`
 	
-				newname=$filename2$dot$fileextension
-				if [[ $filename != $newname ]]; then
+				newname=$filename$dot$fileextension
+				if [[ `basename $file` != $newname ]]; then
 					mv $a/`basename $file` $a/$newname
 				fi
 			fi
