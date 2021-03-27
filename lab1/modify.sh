@@ -7,7 +7,7 @@ recursion="False"
 #important: use the ${file##*.} to get the file extension!!!
 
 
-Help() {
+Help() { #Just the function, which prints the help message
 	echo "This program modifies the file names to upper/lower letters."
 	echo "Usage of flags:"
 	echo "-l	lowering the file names in current directory"
@@ -34,50 +34,69 @@ done
 
 #find $recursion -type f | tr $option
 
-change_name() {
-	variable=`realpath $1`
-	path=`echo "${variable%/*}/"`
-	filename=`basename $1 | cut -f1 -d '.'` #| tr $option`
-	fileextension=`basename ${1##*.}`  #| cut -f2 -d '.'`
-	if [[ $filename == $fileextension ]]; then
+change_name() { #it is a function which changes the name of a given single file depending on the flag.
+	variable=`realpath $1` #buffer variable
+	path=`echo "${variable%/*}/"`	#getting the path to the folder where the file is
+	filename=`basename $1 | cut -f1 -d '.'` #the base name of the file
+	fileextension=`basename ${1##*.}`  #getting the file extension only.
+	if [[ $filename == $fileextension ]]; then #file doesn't have extension
 		fileextension=""
 		dot=""
-	else
+	else #file have extension
 		dot="."
 	fi
-	filename=`basename $1 | cut -f1 -d '.' | tr $option`
-	newname=$filename$dot$fileextension
+	if [[ $2 == "true" ]]; then
+		filename=`basename $1 | cut -f1 -d '.' | tr $option` #pure file name however with lower/upper letters
+	else
+		filename=`echo $filename | sed $2`
+	fi
+	newname=$filename$dot$fileextension #name of a file and it's unchanged extension
 	variable=`basename $1`
 	if [[ `basename $1` != $newname ]]; then
-		mv $path$variable $path$newname
+		mv $path$variable $path$newname #renaming the old file name to the new (edited) one.
 	fi
 }
 
-traverse () {
+traverse () { #function which performs recursion and iteration over all files in given directory
 	local a file #a is the first argument of a function. The a is used instead of $1 as it is impossible to iterate over $1
 	for a; do
 		for file in "$a"/*; do
 			if [[ -d $file ]]; then
 				if [[ $recursion == True ]]; then
-					traverse "$file"
+					traverse $file $2
 				fi
 			else
-				change_name $file
+				if [ -f "$file" ]; then
+					change_name $file $2
+				fi
 			fi
 		done
 	done
 }
 
-while test "$1" != ""
+sd=$2
+if [ -d "$2" ] || [ -f "$2" ] || [[ "$2" == "" ]]; then #sed is always the second parameter (if it exists)
+	sd="true"
+fi
+while test "$1" != "" #iteration over parameters -> so as to perform ./modify on specified files/directories
 do
 	if [ -d "$1" ]; then
-		traverse `realpath $1`
+		traverse `realpath $1` $sd
 	fi
 	if [ -f "$1" ]; then
-		change_name $1
-	fi	
+		change_name $1 $sd
+	fi
 	shift
 done
 #todo:
 #1) sed
 #2) fix getopts
+
+#1) sed - what have to be done is to call the sed command on the file names. Example: sed 's/[a-z][a-z]*/(&)/' should change the file name from alamakota.txt to (alamakota).txt
+#how to do this?
+#in function which iterates over parameters -> recognize the sed pattern (or assume that if something is not file nor directory then it is sed) 
+#call the sed only on the file name -> basename filename.txt .txt | sed $pattern
+#if sed return an error -> print error
+#if not -> save the file with new name
+#use change_name function to do so -- e.g. pass the seded file name as a parameter
+
