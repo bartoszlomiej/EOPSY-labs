@@ -35,6 +35,10 @@ done
 #find $recursion -type f | tr $option
 
 change_name() {
+
+	variable=`realpath $1`
+	path=`echo "${variable%/*}/"`
+	echo "path: $path"
 	filename=`basename $1 | cut -f1 -d '.'` #| tr $option`
 	fileextension=`basename ${1##*.}`  #| cut -f2 -d '.'`
        	echo "extension: $fileextension"
@@ -46,10 +50,10 @@ change_name() {
 		dot="."
 	fi
 	filename=`basename $1 | cut -f1 -d '.' | tr $option`
-
 	newname=$filename$dot$fileextension
+	variable=`basename $1`
 	if [[ `basename $1` != $newname ]]; then
-		mv $2/$1 $2/$newname #here is the problem for now
+		mv $path$variable $path$newname #here is the problem for now
 	fi
 }
 
@@ -62,8 +66,9 @@ traverse () {
 					traverse "$file"
 				fi
 			else
+				echo `realpath .`
 				onlyname=`readlink -f $file`
-				change_name $onlyname $a
+				#change_name $onlyname $a
 			fi
 		done
 	done
@@ -75,10 +80,11 @@ do
 	echo "parameters: $1"
 	if [ -d "$1" ]; then
 		echo "dziala $1"
+#		traverse `realpath $1`
 	fi
 	if [ -f "$1" ]; then
 		pwd
-		change_name $1 `pwd`
+		change_name $1
 	fi	
 	shift
 done
