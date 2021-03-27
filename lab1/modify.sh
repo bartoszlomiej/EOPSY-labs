@@ -35,14 +35,10 @@ done
 #find $recursion -type f | tr $option
 
 change_name() {
-
 	variable=`realpath $1`
 	path=`echo "${variable%/*}/"`
-	echo "path: $path"
 	filename=`basename $1 | cut -f1 -d '.'` #| tr $option`
 	fileextension=`basename ${1##*.}`  #| cut -f2 -d '.'`
-       	echo "extension: $fileextension"
-	echo "filename: $filename"
 	if [[ $filename == $fileextension ]]; then
 		fileextension=""
 		dot=""
@@ -53,7 +49,7 @@ change_name() {
 	newname=$filename$dot$fileextension
 	variable=`basename $1`
 	if [[ `basename $1` != $newname ]]; then
-		mv $path$variable $path$newname #here is the problem for now
+		mv $path$variable $path$newname
 	fi
 }
 
@@ -66,36 +62,22 @@ traverse () {
 					traverse "$file"
 				fi
 			else
-				echo `realpath .`
-				onlyname=`readlink -f $file`
-				#change_name $onlyname $a
+				change_name $file
 			fi
 		done
 	done
 }
-#traverse `pwd`
 
 while test "$1" != ""
 do
-	echo "parameters: $1"
 	if [ -d "$1" ]; then
-		echo "dziala $1"
-#		traverse `realpath $1`
+		traverse `realpath $1`
 	fi
 	if [ -f "$1" ]; then
-		pwd
 		change_name $1
 	fi	
 	shift
 done
 #todo:
-#0) give the directory/file names directly to lower/upper
 #1) sed
 #2) fix getopts
-#3) 
-
-#How to do the #0?
-#solution: -read all commandline parameters. Check if it is a file or directory. if file => apply the function lower/upper. If directory => function traverse 'directory path' (directory path = `pwd`/directoryname) 
-
-#current issue: when the file is test/Misiek.txt then mv tries to mv `pwd`/Misiek.tx instead of `pwd`/test/Misiek.txt to `pwd`/MISIEK.txt instead of `pwd`/test/MISIEK.txt
-
