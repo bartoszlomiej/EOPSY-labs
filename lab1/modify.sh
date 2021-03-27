@@ -59,6 +59,7 @@ change_name() { #it is a function which changes the name of a given single file 
 	if [[ `basename $1` != $newname ]]; then
 		mv $path$variable $path$newname #renaming the old file name to the new (edited) one.
 	fi
+	sth_happend="true" #for showing help if no arguments are given
 }
 
 traverse () { #function which performs recursion and iteration over all files in given directory
@@ -79,6 +80,7 @@ traverse () { #function which performs recursion and iteration over all files in
 }
 
 sd="true"
+sth_happend="false"
 if [ ! -d "$2" ] && [ ! -f "$2" ] && [[ ! "$2" == "" ]]; then #here it breaks
 	sd="$2"
 fi
@@ -92,6 +94,11 @@ do
 	fi
 	shift
 done
+
+if [[ $sth_happend == "false" ]]; then
+	Help
+fi
+
 #todo:
 #1) Problem with flags -> if more then one is used -l -r then the sed is not working - because flags are treated as the sed input and it must be ommited
 #2) fix getopts
