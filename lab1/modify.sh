@@ -9,12 +9,16 @@ recursion="False"
 
 Help() { #Just the function, which prints the help message
 	echo "This program modifies the file names to upper/lower letters."
+	echo "Usage:"
+        echo "./modify <flags> <dir/file names...>"
+	echo "./modify <flags> <sed pattern> <dir/file names...>"
 	echo "Usage of flags:"
 	echo "-l	lowering the file names in current directory"
 	echo "-u	uppering the file names in current directory"
-	echo "add additonaly flag -r to do it recursively in all directories"
+	echo "-r 	performes recursively in all directories"
+	echo "-h	shows the help"
 	echo "example:"
-	echo "modify -ur		uppering all file names in recursively from current directory"
+	echo "modify -ur .		uppering all file names in recursively from current directory"
 	
 }
 
@@ -74,9 +78,9 @@ traverse () { #function which performs recursion and iteration over all files in
 	done
 }
 
-sd=$2
-if [ -d "$2" ] || [ -f "$2" ] || [[ "$2" == "" ]]; then #sed is always the second parameter (if it exists)
-	sd="true"
+sd="true"
+if [ ! -d "$2" ] && [ ! -f "$2" ] && [[ ! "$2" == "" ]]; then #here it breaks
+	sd="$2"
 fi
 while test "$1" != "" #iteration over parameters -> so as to perform ./modify on specified files/directories
 do
@@ -89,14 +93,6 @@ do
 	shift
 done
 #todo:
-#1) sed
+#1) Problem with flags -> if more then one is used -l -r then the sed is not working - because flags are treated as the sed input and it must be ommited
 #2) fix getopts
-
-#1) sed - what have to be done is to call the sed command on the file names. Example: sed 's/[a-z][a-z]*/(&)/' should change the file name from alamakota.txt to (alamakota).txt
-#how to do this?
-#in function which iterates over parameters -> recognize the sed pattern (or assume that if something is not file nor directory then it is sed) 
-#call the sed only on the file name -> basename filename.txt .txt | sed $pattern
-#if sed return an error -> print error
-#if not -> save the file with new name
-#use change_name function to do so -- e.g. pass the seded file name as a parameter
-
+#3) extensive modify_examples
