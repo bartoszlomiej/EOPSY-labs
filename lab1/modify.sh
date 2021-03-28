@@ -22,7 +22,7 @@ Help() { #Just the function, which prints the help message
 	
 }
 
-while getopts ":lur:h" flag #problem -> it is possible to make -lu flag! which is an error
+while getopts "lr:ur:h" flag #problem -> it is possible to make -lu flag! which is an error
 do
     case "${flag}" in #remember to make it impossible to choose -lu
 	l) option="[:upper:] [:lower:]";; #performing lowering the letter
@@ -31,12 +31,6 @@ do
 	h) Help
     esac
 done
-
-#find -depth -type f //this command is used for finding files recursively
-
-#find -depth -type f -exec tr $option {} \; #to change files names there is a need to use mv!
-
-#find $recursion -type f | tr $option
 
 change_name() { #it is a function which changes the name of a given single file depending on the flag.
 	variable=`realpath $1` #buffer variable
@@ -52,7 +46,12 @@ change_name() { #it is a function which changes the name of a given single file 
 	if [[ $2 == "true" ]]; then
 		filename=`basename $1 | cut -f1 -d '.' | tr $option` #pure file name however with lower/upper letters
 	else
-		filename=`echo $filename | sed $2`
+		buffer=`echo $filename | sed $2 > /dev/null 2>&1` #getting rid of annoying sed error masseges
+		if [[ "$?" -eq "0" ]]; then
+			filename=`echo $filename | sed $2`
+		else
+			errormsg=`echo "The given sed pattern is incorrect. Exit code: $?"`
+		fi
 	fi
 	newname=$filename$dot$fileextension #name of a file and it's unchanged extension
 	variable=`basename $1`
@@ -81,11 +80,14 @@ traverse () { #function which performs recursion and iteration over all files in
 
 sd="true"
 sth_happend="false"
-if [ ! -d "$2" ] && [ ! -f "$2" ] && [[ ! "$2" == "" ]]; then #here it breaks
-	sd="$2"
-fi
+
 while test "$1" != "" #iteration over parameters -> so as to perform ./modify on specified files/directories
 do
+	if [[ "$1" != "-l" ]] && [[ "$1" != "-u" ]] && [[ "$1" != "-r" ]]; then #this operation is being done to
+		if [ ! -d "$1" ] && [ ! -f "$1" ] && [[ ! "$1" == "" ]]; then #avoid skip flags for the sed
+			sd="$1"
+		fi	
+	fi
 	if [ -d "$1" ]; then
 		traverse `realpath $1` $sd
 	fi
@@ -95,11 +97,13 @@ do
 	shift
 done
 
-if [[ $sth_happend == "false" ]]; then
+if [[ $sth_happend == "false" ]]; then #if no name was changed, the help shows
 	Help
 fi
 
+if [[ $errormsg != "" ]]; then #printing the error message of the sed command (it happens often)
+	echo $errormsg
+fi
+
 #todo:
-#1) Problem with flags -> if more then one is used -l -r then the sed is not working - because flags are treated as the sed input and it must be ommited
-#2) fix getopts
 #3) extensive modify_examples
