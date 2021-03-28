@@ -3,10 +3,6 @@
 option="non empty"
 recursion="False"
 
-
-#important: use the ${file##*.} to get the file extension!!!
-
-
 Help() { #Just the function, which prints the help message
 	echo "This program modifies the file names to upper/lower letters."
 	echo "Usage:"
@@ -22,9 +18,9 @@ Help() { #Just the function, which prints the help message
 	
 }
 
-while getopts "lr:ur:h" flag #problem -> it is possible to make -lu flag! which is an error
+while getopts "lr:ur:h" flag
 do
-    case "${flag}" in #remember to make it impossible to choose -lu
+    case "${flag}" in
 	l) option="[:upper:] [:lower:]";; #performing lowering the letter
 	u) option="[:lower:] [:upper:]";; #performing uppering the letter
 	r) recursion="True" ;; #performing l/u recursively
@@ -83,8 +79,8 @@ sth_happend="false"
 
 while test "$1" != "" #iteration over parameters -> so as to perform ./modify on specified files/directories
 do
-	if [[ "$1" != "-l" ]] && [[ "$1" != "-u" ]] && [[ "$1" != "-r" ]]; then #this operation is being done to
-		if [ ! -d "$1" ] && [ ! -f "$1" ] && [[ ! "$1" == "" ]]; then #avoid skip flags for the sed
+	if [[ "$1" != "-l" ]] && [[ "$1" != "-u" ]] && [[ "$1" != "-r" ]] && [[ "$1" != "-lr" ]] && [[ "$1" != "-rl" ]] && [[ "$1" != "-ur" ]] && [[ "$1" != "-ru" ]]; then #this operation is being done to
+		if [ ! -d "$1" ] && [ ! -f "$1" ] && [[ ! "$1" == "" ]]; then #skip known flags for the sed
 			sd="$1"
 		fi	
 	fi
