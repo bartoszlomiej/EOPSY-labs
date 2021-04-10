@@ -11,8 +11,19 @@
  * insert one second delays between consecutive fork() calls.
  */
 
-int main(){
+void Create_Chlid(){
+  printf("Hello World!\n");
+}
 
+int main(){
+  Create_Chlid();
+  sleep(1);
+  fork();
+  Create_Chlid();
+  sleep(1);
+  fork();
+  Create_Chlid();
+  return 0;
 }
 
 
