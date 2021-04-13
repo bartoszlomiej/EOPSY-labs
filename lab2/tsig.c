@@ -22,16 +22,18 @@ void handle_sigchld(int sig){
 */
 
 void kill_children(int* t){
-  for(int i = 1; i < NUM_CHILD; i++)
+  for(int i = 1; i < NUM_CHILD; i++){
+    //    printf("The children was killed properly: %d\n", t[i]);
     kill(t[i], SIGTERM); //terminates all processes apart from the oldest one.
+  }
 }
 
 void create_processes(int* t){
   t[0] = getpid(); //pid of the oldest process
   for(int i = 1; i < NUM_CHILD; i++ ){
     if(t[0] == getpid()){ //the processes will be created ONLY by the one (the oldest) processp
-      int code = fork();
-      if(code == -1){//optionally -> check if all codes are equal to 0 -> call the success.
+      t[i] = fork();
+      if(t[i] == -1){//optionally -> check if all codes are equal to 0 -> call the success.
 	kill_children(t);
 	printf("The child proccess was not created properly");
 	exit(1);
