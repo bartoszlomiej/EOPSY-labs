@@ -48,6 +48,8 @@ void create_processes(int* t){
       sleep(1);
     }
   }
+  if(t[NUM_CHILD-1] != 0) //means that the last child was born.
+    printf("All %d processes were created successfully\n", NUM_CHILD);
 }
 
 int main(){
@@ -57,15 +59,18 @@ int main(){
   
   if(t[0] == getpid()){
     int i = 1;
-    while(i != NUM_CHILD){ //counting all children processes.
+    while(i != NUM_CHILD){ //counting all children processes terminations.
       if(wait(NULL) != -1) //waiting for all children to die.
 	i = i + 1;
     }
-    printf("All %d processes were created successfully\n", NUM_CHILD);
     printf("The children are dead.\n");
     //    kill_children(t);
   }
-  printf("ala ma kota. Process PID: %d\n", getpid());
+  else{
+    printf("The parent ID: %d\n", getppid());
+    sleep(10);
+    printf("The child process was completed. Process PID: %d\n", getpid());
+  }
   //while(1);
   return 0;
 }
