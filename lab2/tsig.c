@@ -56,7 +56,7 @@ void synchronize(int* t){
     while(i != NUM_CHILD){ //counting all children processes terminations.
       if(wait(NULL) != -1) //waiting for all children to die.
 	i = i + 1;
-      // printf("O chuj.jpg: %d\n", i);
+      printf("O chuj.jpg: %d\n", i);
     }
     printf("The children are dead.\n");
   }
@@ -85,12 +85,11 @@ void handle_sigint(){
 }
 
 
-/*
-void handle_sigchld(int sig){
-  printf("STH%d\n", sig); //just for the future purpouse of using handling
-}
-*/
-
+/* TODO:
+ * FIX -> the synchronization when creation of children was interrupted.
+ * Interesting -> if at least 3 children were already created -> works properly
+ * Probably -> just after creation of children, they should learn how to ignore the interrupt
+ */
 int main(){
   int t[NUM_CHILD]; //the table with all processes ID's
   ignore_all();
