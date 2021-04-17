@@ -13,7 +13,7 @@ int mark = 0;
 void ignore(){}
 
 void handle_sigterm(){
-  printf("The children are making revolution. We don't want to die!!!\n\n");
+  printf("The children are making revolution. They don't want to die!!!\n");
 }
 
 void kill_children(int* t){
@@ -34,15 +34,16 @@ void create_processes(int* t){
 	printf("The child proccess was not created properly\n");
 	exit(1); //error -> exit code 1
       }
-      if(getpid() != t[0]){
+      if(getpid() != t[0]){ //the child are learning to ignore interrupt and handle their terminations
 	signal(SIGINT, SIG_IGN);
-	signal(SIGTERM, handle_sigterm);
+	signal(SIGTERM, SIG_IGN); //--------------------------for some reason my own signal handler still kills the children XD
       }
       sleep(1);
     }
-    if (mark > 0 && getpid() == t[0]){ //killing already existin children if mark was spotted
+    if (mark == 1 && getpid() == t[0]){ //killing already existin children if mark was spotted
       kill_children(t);
       printf("The process of making children was interrupted ( ͡° ͟ʖ ͡°)\n" );
+      mark = mark + 1;
     }
   }
   if(t[NUM_CHILD-1] != 0) //means that the last child was born.
@@ -53,17 +54,20 @@ void synchronize(int* t){
   if(t[0] == getpid()){
     signal(SIGCHLD, SIG_DFL);
     int i = 1;
-    while(i != NUM_CHILD){ //counting all children processes terminations.
+    int j = 0;
+    while(j != NUM_CHILD){ //counting all children processes terminations.
       if(wait(NULL) != -1) //waiting for all children to die.
 	i = i + 1;
-      printf("O chuj.jpg: %d\n", i);
+      j = j + 1;
+      printf("Tutaj jest blad: %d\n", i);
     }
     printf("The children are dead.\n");
   }
   else{
     printf("The parent ID: %d\n", getppid());
+    printf("My id: %d-------\n", getpid());
     sleep(10);
-    printf("The child process was completed. Process PID: %d\n", getpid());
+    printf("The child process was completed. Process PID: %d\n\n", getpid());
   }
 }
 
