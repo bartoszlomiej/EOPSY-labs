@@ -41,11 +41,8 @@ void create_processes(int* t){
 	struct sigaction act;
 	memset(&act, '\0', sizeof(act));
 	act.sa_sigaction = &handle_sigterm;
-	//	act.sa_handler = SIG_IGN; //-------uncomment this to make program work. 
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGTERM, &act, NULL);
-	//	signal(SIGTERM, SIG_IGN); //--------------------------for some reason my own signal handler still kills the children XD
-	//	signal(SIGTERM, handle_sigterm);
       }
       sleep(1);
     }
@@ -61,14 +58,10 @@ void create_processes(int* t){
 
 void synchronize(int* t){
   if(t[0] == getpid()){
-    signal(SIGCHLD, SIG_DFL);
     int i = 1;
-    int j = 0;
-    while(j != NUM_CHILD){ //counting all children processes terminations.
+    while(i != NUM_CHILD){ //counting all children processes terminations.
       if(wait(NULL) != -1) //waiting for all children to die.
 	i = i + 1;
-      j = j + 1;
-      printf("Tutaj jest blad: %d\n", i); //------------------------this must be removed - it is for dbg purpouse only
     }
     printf("Parent[%d]. The children are dead.\n", getpid());
   }
@@ -96,29 +89,21 @@ void handle_sigint(){
   mark = mark + 1;
 }
 
-
-/* TODO:
- * FIX -> the synchronization when creation of children was interrupted.
- * Interesting -> if at least 3 children were already created -> works properly
- * Probably -> just after creation of children, they should learn how to ignore the interrupt
- */
 int main(){
   int t[NUM_CHILD]; //the table with all processes ID's
   ignore_all();
   signal(SIGINT, handle_sigint);
-
+  signal(SIGCHLD, SIG_DFL);
   for(int i = 0; i < NUM_CHILD; i++)//fun fact: on fedora the table is not initialized with 0,while on xubuntu it is
     t[i] = 0;
 
   create_processes(t);
   
-  //  if(mark == 0) //if children are dead, then there is nothing to synchronize
   synchronize(t);
-  //  if(t[0] == getpid()) //just for the dbg of the interrupt handler
-    //    printf("What's my mark?: %d\n", mark);
+
   if(getpid() != t[0])
     reset_signals();
-  //  while(mark < 10);
+
   return 0;
 }
 #endif
