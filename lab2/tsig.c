@@ -15,7 +15,7 @@ int mark = 0;
 void ignore(){}
 
 void handle_sigterm(){
-  printf("Child[%d]. The children are making revolution. They don't want to die!!!\n", getpid());
+  printf("Child[%d]. Recived sigterm signal. The children are making revolution. They don't want to die!!!\n", getpid());
 }
 
 void kill_children(int* t){
@@ -48,7 +48,7 @@ void create_processes(int* t){
     }
     if (mark == 1 && getpid() == t[0]){ //killing already existin children if mark was spotted
       kill_children(t);
-      printf("Parent[%d]. The process of making children was interrupted ( ͡° ͟ʖ ͡°)\n", getpid());
+      printf("Parent[%d]. Sending SIGTERM signal. The process of making children was interrupted ( ͡° ͟ʖ ͡°)\n", getpid());
       mark = mark + 1;
     }
   }
@@ -85,7 +85,7 @@ void reset_signals(){
 }
 
 void handle_sigint(){
-  printf("Parent[%d]. The keyboard interrupt was spotted\n", getpid());
+  printf("Parent[%d]. The SIGINT signal was recived\n", getpid());
   mark = mark + 1;
 }
 
