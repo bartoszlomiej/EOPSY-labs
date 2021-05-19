@@ -5,23 +5,6 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 
-/*
-The idea:
--There are 5 philosophers.
--There are 5 forks
--In order to eat, a philosopher must have 2 forks
--If each philosopher grabs the fork on the right, then waits for the fork on the left -> the deadlock occurs
--The philosophers should be fair (if he don't have the left fork -> he don't keep the one on the right)
--Each philosopher should be able to eat as much as the rest
-
-In other words:
--Each philosopher is a process
--The must have functions:
-a) void grab_forks(int left_fork_id);
-b) void put_away_forks(int left_fork_id);
--where the left_fork_id is an integer identifying semaphores associated with forks
- */
-
 //Remember to print on the standard output verbose messages from philosophers
 
 #define N 5
@@ -31,30 +14,11 @@ b) void put_away_forks(int left_fork_id);
 #define LEFT (i + N - 1) % N
 #define RIGHT (i + N + 1) % N
 
-struct sembuf sem_op;
+struct sembuf sem_op[2];
 int mutex;
 int s;
 int state[N]; //all states are 0 by default
 
-/*
-
-void eat(){//just for dbg
-  printf("Hejo\n");
-  return;
-}
-void donteat(){//just for dbg
-  printf("Glodny\n");
-  return;
-}
-
-void grab_forks(int left_fork_id){
-  return;
-}
-
-void put_away_forks(int left_fork_id){
-  return;
-}
-*/
 //-----------------------------------------------------------------------------------------------------------------
 int get_semaphore(int id, int n){
   int sem_id = semget(id, n, IPC_CREAT | 0600);
@@ -84,64 +48,57 @@ void initialize_semaphore(int sem_set_id, int sem_num){ /* Due to the semctl doc
 
 void lock(int sem_set_id, int sem_num){
   /*struct sembuf semop;*/
-  sem_op.sem_num = sem_num;
-  sem_op.sem_op = -1;
-  sem_op.sem_flg = 0;
-  semop(sem_set_id, &sem_op, 1);
+  sem_op[sem_set_id].sem_num = sem_num;
+  sem_op[sem_set_id].sem_op = sem_op[sem_set_id].sem_op - 1;
+  //sem_op.sem_op = -1;
+  sem_op[sem_set_id].sem_flg = 0;
+  //  printf("lock: %d, id: %d, sem_num: %d\n", sem_op[sem_set_id].sem_op, sem_set_id, sem_num);
+  semop(sem_set_id, &sem_op[sem_set_id], sem_num);
 }
 
 void unlock(int sem_set_id, int sem_num){
-  sem_op.sem_num = sem_num; //the semaphore number in the set
-  sem_op.sem_op = 1;
-  sem_op.sem_flg = 0;
-  semop(sem_set_id, &sem_op, 1);
+  sem_op[sem_set_id].sem_num = sem_num; //the semaphore number in the set
+
+  //  if(sem_op.sem_op == -1)
+  //    sem_op.sem_op = sem_op.sem_op + 1; //???
+  sem_op[sem_set_id].sem_op = sem_op[sem_set_id].sem_op + 1;
+  // sem_op.sem_op = 1;
+  sem_op[sem_set_id].sem_flg = 0;
+  //  printf("unlock: %d, id: %d, sem_num: %d\n", sem_op[sem_set_id].sem_op, sem_set_id, sem_num);
+  semop(sem_set_id, &sem_op[sem_set_id], sem_num);
 }
 //-----------------------------------------------------------------------------------------------------------------
-//There are 5 philosophers -> from 0 to 4
-//void philosopher(int number){
-  
-  /*
-  printf("My pid: %d, my count: %d\n", getpid(), number);
-
-  if(number == 0){ //border case
-    if((forks[0] == 1) && (forks[4] == 1))
-      eat(); //just for dbg
-    else
-      donteat();
-  }
-  else if(number == 4){
-    if((forks[4] == 1) && (forks[3] == 1))
-      eat(); //just for dbg
-    else
-      donteat();
-  }
-  else if((forks[number] == 1) && (forks[number - 1] == 1))
-      eat(); //just for dbg
-    else
-      donteat();
-  */
-//}
-
-//-----------------------------------------------------------------------------------------------------------------
 void eat(){
-  printf("eating Philosopher: %d\n", getpid());
+  sleep(1);
+  //  printf("eating Philosopher: %d\n", getpid());
 }
 
 void think(){
-  printf("//thinking Philosopher: %d\n", getpid());
+  sleep(1);
+  //  printf("//thinking Philosopher: %d\n", getpid());
 }
 //-----------------------------------------------------------------------------------------------------------------
 
 void test(i){
+  for(int i = 0; i < 5; i++){
+    printf("state[%d]: %d; ", i, state[i]);
+  }
+  printf("\n");
   if (state[i] == HUNGRY && state[LEFT] != EATING && state[RIGHT] != EATING){
     state[i] = EATING;
+    printf("Philosopher %d takes fork %d and %d\n", i, LEFT, i);
+    printf("Philosopher %d is eating\n", i);
+    //    printf("THe state: %d\n", state[i]);
     unlock(s, i);
+    //    unlock(s, i);
+    //    unlock(s, i);
   }
 }
 
 void put_away_forks(i){
   lock(mutex, 0);
   state[i] = THINKING;
+  printf("Philosopher %d putting fork %d and %d down\n",  i, LEFT, i);
   test(LEFT);
   test(RIGHT);
   unlock(mutex, 0);
@@ -150,14 +107,16 @@ void put_away_forks(i){
 void grab_forks(int i){
   lock(mutex, 0);
   state[i] = HUNGRY;
+  printf("Philosopher %d is Hungry\n", i);
   test(i);
   unlock(mutex, 0);
+  printf("Hejo\n");
   lock(s, i);
 }
 
 void philosopher(int i){
   int j = 0;
-  while(j < 2){
+  while(1){
     think( );
     grab_forks(i);
     eat( );
@@ -186,22 +145,14 @@ void create_philosophers(){
   }
   if(t[0] == getpid()){
     count = count + 1; //the first philosopher number incrementation
-    //    sleep(5);
   }
-  /*
-  if(t[0] != getpid()){
-    //      lock(a, &sem_op);
-      sleep(1);
-      //      unlock(a, &sem_op);
-  }
-  */
   philosopher(count);
 }
 //int get_semaphore(int id, int n){
 //void initialize_semaphore(int sem_set_id){
 //void lock(int sem_set_id, int num){
 //void unlock(int sem_set_id, int num){
-int main(){  
+int main(){
   create_philosophers();
   return 0;
 }
