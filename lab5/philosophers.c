@@ -47,35 +47,26 @@ void initialize_semaphore(int sem_set_id, int sem_num){ /* Due to the semctl doc
 }
 
 void lock(int sem_set_id, int sem_num){
-  /*struct sembuf semop;*/
   sem_op[sem_set_id].sem_num = sem_num;
   sem_op[sem_set_id].sem_op = sem_op[sem_set_id].sem_op - 1;
-  //sem_op.sem_op = -1;
   sem_op[sem_set_id].sem_flg = 0;
-  //  printf("lock: %d, id: %d, sem_num: %d\n", sem_op[sem_set_id].sem_op, sem_set_id, sem_num);
   semop(sem_set_id, &sem_op[sem_set_id], sem_num);
 }
 
 void unlock(int sem_set_id, int sem_num){
   sem_op[sem_set_id].sem_num = sem_num; //the semaphore number in the set
-
-  //  if(sem_op.sem_op == -1)
-  //    sem_op.sem_op = sem_op.sem_op + 1; //???
   sem_op[sem_set_id].sem_op = sem_op[sem_set_id].sem_op + 1;
-  // sem_op.sem_op = 1;
   sem_op[sem_set_id].sem_flg = 0;
-  //  printf("unlock: %d, id: %d, sem_num: %d\n", sem_op[sem_set_id].sem_op, sem_set_id, sem_num);
   semop(sem_set_id, &sem_op[sem_set_id], sem_num);
 }
 //-----------------------------------------------------------------------------------------------------------------
 void eat(){
   sleep(1);
-  //  printf("eating Philosopher: %d\n", getpid());
 }
 
 void think(){
   sleep(1);
-  //  printf("//thinking Philosopher: %d\n", getpid());
+  printf("xd");
 }
 //-----------------------------------------------------------------------------------------------------------------
 
@@ -84,14 +75,12 @@ void test(i){
     printf("state[%d]: %d; ", i, state[i]);
   }
   printf("\n");
+
   if (state[i] == HUNGRY && state[LEFT] != EATING && state[RIGHT] != EATING){
     state[i] = EATING;
     printf("Philosopher %d takes fork %d and %d\n", i, LEFT, i);
     printf("Philosopher %d is eating\n", i);
-    //    printf("THe state: %d\n", state[i]);
     unlock(s, i);
-    //    unlock(s, i);
-    //    unlock(s, i);
   }
 }
 
@@ -110,12 +99,12 @@ void grab_forks(int i){
   printf("Philosopher %d is Hungry\n", i);
   test(i);
   unlock(mutex, 0);
-  printf("Hejo\n");
   lock(s, i);
 }
 
 void philosopher(int i){
   int j = 0;
+  sleep(1);
   while(1){
     think( );
     grab_forks(i);
@@ -148,10 +137,7 @@ void create_philosophers(){
   }
   philosopher(count);
 }
-//int get_semaphore(int id, int n){
-//void initialize_semaphore(int sem_set_id){
-//void lock(int sem_set_id, int num){
-//void unlock(int sem_set_id, int num){
+
 int main(){
   create_philosophers();
   return 0;
