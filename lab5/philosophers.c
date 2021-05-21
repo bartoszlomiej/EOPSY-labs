@@ -4,6 +4,8 @@
 #include <sys/sem.h>
 #include <unistd.h>
 #include <sys/ipc.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 //Remember to print on the standard output verbose messages from philosophers
 
@@ -60,7 +62,6 @@ void unlock(int sem_set_id, int sem_num){
 }
 
 void eat(int i){
-  sleep(1);
   printf("I am eating now: %d\n", i);
 }
 
@@ -69,7 +70,7 @@ void think(int i){
   printf("I am thinking now: %d\n", i);
 }
 
-void put_away_forks(i){
+void put_away_forks(int i){
   sem_op[s].sem_op = +1;
   sem_op[s].sem_num = i;
   semop(s, &sem_op[1], 1); //taking the 'fork' of the i'th philosopher
@@ -96,14 +97,18 @@ void sit_to_table(int i){
 }
 
 void philosopher(int i){
-  sit_to_table(i);
-  sleep(1);
-  while(1){
+  sit_to_table(i); //to ensure that all philosophers will start at the same time
+  int j = 5;
+  int dinner = 0;
+  while(j){
     think(i); //think - wait before eat - protects from taking 'fork' two times in a row
     grab_forks(i);
     eat(i); //eat - eating must last for some time:)
+    dinner++;
     put_away_forks(i);
+    j--;
   }
+  printf("I, the philosopher: %d, ate %d portions!\n", i, dinner);
 }
 
 void create_philosopher(){
@@ -128,6 +133,13 @@ void create_philosopher(){
     count = count + 1; //the first philosopher number incrementation
   }
   philosopher(count);
+  if(t[0] == getpid()){
+    int i = 1;
+    while(i != N){ //counting all children processes terminations.
+      if(wait(NULL) != -1) //waiting for all children to die. - to exit correctly
+	i = i + 1;
+    }
+  }
 }
 
 int main(){
