@@ -72,19 +72,19 @@ void think(int i){
 void put_away_forks(i){
   sem_op[s].sem_op = +1;
   sem_op[s].sem_num = i;
-  semop(s, &sem_op[1], 1);
+  semop(s, &sem_op[1], 1); //taking the 'fork' of the i'th philosopher
 
   sem_op[s].sem_op = +1;
   sem_op[s].sem_num = LEFT;
-  semop(s, &sem_op[1], 1);
+  semop(s, &sem_op[1], 1); //taking the 'fork' of the philosopher on the left
 }
 
 void grab_forks(int i){
   sem_op[s].sem_op = -1;
   sem_op[s].sem_num = i;
-  semop(s, &sem_op[1], 1);
+  semop(s, &sem_op[1], 1); //releasing the 'fork' of the i'th philosopher
 
-  sem_op[s].sem_op = -1;
+  sem_op[s].sem_op = -1; //releasing the 'fork' of the philosopher on the left
   sem_op[s].sem_num = LEFT;
   semop(s, &sem_op[1], 1);
 }
@@ -99,9 +99,9 @@ void philosopher(int i){
   sit_to_table(i);
   sleep(1);
   while(1){
-    think(i);
+    think(i); //think - wait before eat - protects from taking 'fork' two times in a row
     grab_forks(i);
-    eat(i);
+    eat(i); //eat - eating must last for some time:)
     put_away_forks(i);
   }
 }
@@ -120,12 +120,12 @@ void create_philosopher(){
   t[0] = getpid();
   for(int i = 1; i < 5; i++){
     if(t[0] == getpid()){
-      count = count + 1; //Incrementing philossem_opher no by 1 before creation
-      t[i] = fork(); //creating 5 processes -> our philossem_ophers
+      count = count + 1; //Incrementing philosopher no by 1 before creation
+      t[i] = fork(); //creating 5 processes -> our philosophers
     }
   }
   if(t[0] == getpid()){
-    count = count + 1; //the first philossem_opher number incrementation
+    count = count + 1; //the first philosopher number incrementation
   }
   philosopher(count);
 }
