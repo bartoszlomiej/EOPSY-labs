@@ -66,7 +66,7 @@ void eat(int i){
 }
 
 void think(int i){
-  sleep(1);
+  usleep(100); //the delay that protects from taking the fork two times in a row by the same process
   printf("I am thinking now: %d\n", i);
 }
 
