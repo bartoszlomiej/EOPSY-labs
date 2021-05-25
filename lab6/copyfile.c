@@ -14,7 +14,7 @@ void copy_read_write(int fd_from, int fd_to){
   fstat(fd_from, &st);
   int size = st.st_size;
   char* buf = (char*)calloc(size,  sizeof(char));
-    size_t bytes_read;
+  size_t bytes_read;
   /* Reads data from the file associated with the file descriptor into the buffer pointed to by buf */
   bytes_read = read(fd_from, buf, size);
   
@@ -35,6 +35,25 @@ void copy_read_write(int fd_from, int fd_to){
 
 void copy_mmap(int fd_from, int fd_to){
   printf("mmap\n");
+  struct stat st;
+  fstat(fd_from, &st);
+  int size = st.st_size;
+  char *from, *to; //pointer to shared memory object
+  printf("size: %d\n", size);
+  ftruncate(fd_to, size); //adjusting the size of the file to the desired value
+  //  char* buf = (char*)calloc(size,  sizeof(char));
+  /*
+    PROT_WRITE/PORT_READ - pages may be written/read
+    MAP_PRIVATE - create a private copy-on-write mapping
+    MAP_SHARED - share this mapping
+   */
+  from = mmap(0, size, PROT_READ, MAP_PRIVATE, fd_from, 0);
+  to = mmap(0, size, PROT_WRITE, MAP_SHARED, fd_to, 0);
+  
+  memcpy(to, from, size);
+  
+  munmap(from, size); //unmapping the source file
+  munmap(to, size); //unmapping the destination file
   return;
 }
 
