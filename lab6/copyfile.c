@@ -7,25 +7,29 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Reads data from the file associated with the file descriptor into the buffer pointed to by buf */
+
 void copy_read_write(int fd_from, int fd_to){
-  printf("read_write\n");
+  /*-------------Read part---------------*/
   struct stat st;
   fstat(fd_from, &st);
   int size = st.st_size;
   char* buf = (char*)calloc(size,  sizeof(char));
-  
-  size_t bytes_read;
-
+    size_t bytes_read;
+  /* Reads data from the file associated with the file descriptor into the buffer pointed to by buf */
   bytes_read = read(fd_from, buf, size);
   
   printf("The bytes_read: %ld\n", bytes_read);
   if(bytes_read == -1){
     fprintf(stderr, "Error while reading data from the file.\n");
-    return;
+    exit(1);
   }
 
-  printf("The data: %s\n", buf);
+  /*-------------Write part---------------*/
+  int bytes_written = write(fd_to, buf, size);
+  if(bytes_written == -1){
+    fprintf(stderr, "Error while writting data to the file.\n");
+    exit(1);
+  }
   return;
 }
 
@@ -39,20 +43,19 @@ int open_file(char* filename){ /*Opens file iff the given file exist*/
   pfd = open(filename, O_RDONLY);
   if(pfd == -1){
     fprintf(stderr, "Cannot open giver file.\n");
-    return -1;
+    exit(1);
   }
   else{
     printf("File was opened properly\n");
   }
-  printf("file1: %d\n", pfd);
   return pfd;
 }
 
 int open_destination_file(char* filename){ /*Opens or creates file and change it size to 0 of it exist*/
   int pfd;
-  if((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+  if((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC)) == -1){
     fprintf(stderr, "cannot open giver file.\n");
-    return -1;
+    exit(1);
   }
   else{
     printf("File was opened properly\n");
@@ -72,18 +75,18 @@ int main(int argc, char** argv){
       break;
     case 'h':
       printf("-h,   ");
-      return 0; //prevent to further execution of the program if help was set
+      exit(0); //prevent to further execution of the program if help was set
       break;
     case '?':
       printf("wrong parameters were given\n");
       printf("Type -h flag to show the help\n");
-      return -1;
+      exit(1);
     }
   }
 
   if(argc - mark_m > 3 || argc < 3){
     printf("wrong number of the arguments\n");
-    return -1;
+    exit(1);
   }
   
   for(; optind < argc; optind++){ //parsing later arguments
@@ -100,7 +103,7 @@ int main(int argc, char** argv){
     copy_mmap(file1, file2);
   }
 
-  /* closing the file descriptors */
+  /* closing the file descriptors*/
   if(close(file1) == 0)
     printf("source file was closed properly\n");
   if(close(file2) == 0)
