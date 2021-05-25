@@ -7,14 +7,24 @@
 #include <stdio.h>
 #include <string.h>
 
+void copy_read_write(int fd_from, int fd_to){
+  printf("read_write\n");
+  return;
+}
+
+void copy_mmap(int fd_from, int fd_to){
+  printf("mmap\n");
+  return;
+}
+
 int main(int argc, char** argv){
-  int c;
-  int i = 0;
-  while(( c = getopt(argc, argv, ":mh" )) != -1 ){ //parsing flags only
-    i = i + 1;
-    switch(c){
+  int opt;
+  int mark_m = 0; //check if -m flag was set
+  while(( opt = getopt(argc, argv, ":mh" )) != -1 ){ //parsing flags only
+    switch(opt){
     case 'm':
       printf("-m,   ");
+      mark_m = 1;
       break;
     case 'h':
       printf("-h,   ");
@@ -26,8 +36,22 @@ int main(int argc, char** argv){
       return -1;
     }
   }
-  for(; optind < argc; optind++){ //parsing later arguments
-    printf("The next arguments: %s\n:", argv[optind]); 
+
+  if(argc - mark_m > 3 || argc < 3){
+    printf("wrong number of the arguments\n");
+    return -1;
   }
+  
+  for(; optind < argc; optind++){ //parsing later arguments
+    printf("The next arguments: %s\n", argv[optind]); 
+  }
+
+  if(!mark_m){
+    copy_read_write(0, 0);
+  }
+  else{
+    copy_mmap(0, 0);
+  }
+  
   return 0;
 }
