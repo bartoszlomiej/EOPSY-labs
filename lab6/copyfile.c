@@ -42,7 +42,7 @@ int open_file(char* filename){ /*Opens file iff the given file exist*/
   int pfd; //the file discriptor
   pfd = open(filename, O_RDONLY);
   if(pfd == -1){
-    fprintf(stderr, "Cannot open giver file.\n");
+    fprintf(stderr, "Cannot open given file.\n");
     exit(1);
   }
   else{
@@ -53,8 +53,8 @@ int open_file(char* filename){ /*Opens file iff the given file exist*/
 
 int open_destination_file(char* filename){ /*Opens or creates file and change it size to 0 of it exist*/
   int pfd;
-  if((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC)) == -1){
-    fprintf(stderr, "cannot open giver file.\n");
+  if((pfd = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+    fprintf(stderr, "cannot open given file.\n");
     exit(1);
   }
   else{
