@@ -82,6 +82,13 @@ int open_destination_file(char* filename){ /*Opens or creates file and change it
   return pfd;
 }
 
+void help(){
+  printf("This program copies one file into the another file.\n");
+  printf("Usage:\n");
+  printf("./copyfile <source file> <destination file> - copy one file to another file with the posix read/write funcitons :\n");
+  printf("./copyfile -m <source file> <destination file> - map files to memory regions with mmap() and then copy them with the memcpy functions\n");
+}
+
 
 int main(int argc, char** argv){
   int opt;
@@ -89,11 +96,10 @@ int main(int argc, char** argv){
   while(( opt = getopt(argc, argv, ":mh" )) != -1 ){ //parsing flags only
     switch(opt){
     case 'm':
-      printf("-m,   ");
       mark_m = 1;
       break;
     case 'h':
-      printf("-h,   ");
+      help();
       exit(0); //prevent to further execution of the program if help was set
       break;
     case '?':
