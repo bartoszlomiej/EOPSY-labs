@@ -10,9 +10,10 @@
 //Remember to print on the standard output verbose messages from philosophers
 
 #define N 5
-#define LEFT (i + 1) % N
+#define LEFT (i - 1 + N) % N
 
 struct sembuf sem_op[2]; //to operate on mutex and the set of the semaphores
+struct sembuf sem_op_mutex;
 int mutex;
 int s;
 
@@ -36,7 +37,7 @@ void initialize_semaphore(int sem_set_id, int sem_num){ /* Due to the semctl doc
   };
   union semun sem_val;
   sem_val.val = 1;
-  int ret_val = semctl(sem_set_id, sem_num, SETVAL, 1); //return value from the semctl, simply check.
+  int ret_val = semctl(sem_set_id, sem_num, SETVAL, sem_val); //return value from the semctl, simply check.
   if (ret_val == -1) {
     perror("main: semctl");
     exit(1);
@@ -44,17 +45,21 @@ void initialize_semaphore(int sem_set_id, int sem_num){ /* Due to the semctl doc
 }
 
 void lock(int sem_set_id, int sem_num){
-  sem_op[sem_set_id].sem_num = sem_num;
-  sem_op[sem_set_id].sem_op = -1;//sem_op[sem_set_id].sem_op - 1;
-  sem_op[sem_set_id].sem_flg = 0;
-  semop(sem_set_id, &sem_op[sem_set_id], sem_num);
+  sem_op_mutex.sem_num = sem_num;
+  sem_op_mutex.sem_op = -1;//sem_op[sem_set_id].sem_op - 1;
+  sem_op_mutex.sem_flg = 0;
+  if(semop(sem_set_id, &sem_op_mutex, 1)){
+    printf("ERROR");
+  }
 }
 
 void unlock(int sem_set_id, int sem_num){
-  sem_op[sem_set_id].sem_num = sem_num; //the semaphore number in the set
-  sem_op[sem_set_id].sem_op = 1;//sem_op[sem_set_id].sem_op + 1;
-  sem_op[sem_set_id].sem_flg = 0;
-  semop(sem_set_id, &sem_op[sem_set_id], sem_num);
+  sem_op_mutex.sem_num = sem_num; //the semaphore number in the set
+  sem_op_mutex.sem_op = 1;//sem_op[sem_set_id].sem_op + 1;
+  sem_op_mutex.sem_flg = 0;
+  if(semop(sem_set_id, &sem_op_mutex, 1)){
+    printf("ERROR");
+  }
 }
 
 void eat(int i){
@@ -63,60 +68,62 @@ void eat(int i){
 
 void think(int i){
   usleep(50); //the delay that protects from taking the fork two times in a row by the same process
-  printf("I am thinking now: %d\n", i);
+  printf("Thinking now: %d\n", i);
 }
 
 void put_away_forks(int i){  
   sem_op[0].sem_op = +1;
   sem_op[0].sem_num = i;
   sem_op[0].sem_flg = 0;
-  //  semop(s, &sem_op[1], 1); //taking the 'fork' of the i'th philosopher
 
   sem_op[1].sem_op = +1;
-  sem_op[1].sem_num = (i + 1) % 5;
+  sem_op[1].sem_num = LEFT;
   sem_op[1].sem_flg = 0;
-  semop(s, sem_op, 2); //taking the 'fork' of the philosopher on the left
-  usleep(200);
+
+  printf("Eating finished: %d\n", i);
+  if(semop(s, sem_op, 2) == -1) //taking the 'fork' of the philosopher on the left
+    printf("Error:((");
 }
 
 void grab_forks(int i){
   sem_op[0].sem_op = -1;
   sem_op[0].sem_num = i;
   sem_op[0].sem_flg = 0;
-  //  semop(s, &sem_op[1], 1); //releasing the 'fork' of the i'th philosopher
 
   sem_op[1].sem_op = -1; //releasing the 'fork' of the philosopher on the left
-  sem_op[1].sem_num = (i + 1) % 5;
+  sem_op[1].sem_num = LEFT;
   sem_op[1].sem_flg = 0;
-  semop(s, sem_op, 2);
+
+  if(semop(s, sem_op, 2) == -1) //taking the 'fork' of the philosopher on the left
+    printf("Error:((");
 }
 
 void sit_to_table(int i){
   lock(mutex, 0); //enter the critical section - sit to the table
   printf("I am at table! %d\n", i);
   unlock(mutex, 0); //when the philosopher is at the table, then the another one can sit
+  sleep(1);
 }
 
 void philosopher(int i){
-  //  sit_to_table(i); //to ensure that all philosophers will start at the same time
-  //  sleep(1); //to allow another process to enter the table
-  int j = 5;
+  sit_to_table(i); //to ensure that all philosophers will start at the same time
+  int j = 10;
   int dinner = 0;
   while(j){
     think(i); //think - wait before eat - protects from taking 'fork' two times in a row
     grab_forks(i);
+    usleep(100);
     eat(i); //eat - eating must last for some time:)
     dinner++;
     put_away_forks(i);
-    printf("Eating finished: %d\n", i);
-    //    sleep(1);
+    usleep(100);
     j--;
   }
   printf("I, the philosopher: %d, ate %d portions!\n", i, dinner);
 }
 
 void create_philosopher(){
-  //  mutex = get_semaphore(100, 1); //mutex creation
+  mutex = get_semaphore(100, 1); //mutex creation
   s = get_semaphore(200, 5); //the set of 5 semaphores
 
   initialize_semaphore(mutex, 0);
@@ -137,6 +144,7 @@ void create_philosopher(){
     usleep(500);
     count = count + 1; //the first philosopher number incrementation
   }
+  
   philosopher(count);
   if(t[0] == getpid()){
     int i = 1;
