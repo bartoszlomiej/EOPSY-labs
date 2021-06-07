@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -lpthread
+CFLAGS = -Wall -Wextra -pthread
 
 philosophers: philosophers.o
 	$(CC) $(CFLAGS) -o philosophers philosophers.o
