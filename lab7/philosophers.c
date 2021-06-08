@@ -25,9 +25,6 @@ void test(int i){
     if(out != 0)
       perror("test: pthread_cond_signal[i]");
     printf("Eating %d\n", i);
-    /*    if(pthread_cond_signal(&cond[RIGHT]) != 0)
-      perror("test: pthread_cond_signal[RIGHT]");
-    */
   }
 }
 
@@ -46,34 +43,20 @@ void grab_forks(int i){
 void put_away_forks(int i){
   pthread_mutex_lock(&m);
   state[i] = THINKING;
+  printf("I am thinking: %d\n", i);
   test(LEFT);
   test(RIGHT);
-  printf("I am thinking: %d\n", i);
   pthread_mutex_unlock(&m);
   usleep(10);
   return;
 }
 
-/*
-  int philo_id - the integer identifying semaphores associated with each fork.
-
-  Use pthreads_XXX and pthread_mutex_XXX interfaces
-
-  Additional questions:
-  1. Would it be sufficient just to add to the old algorithm from task5
-  additional mutex variable to organize critical sections in functions
-  grab_forks() and put_away_forks() for making changes to values of two mutexes
-  indivisably?  If not, why?
-
-  2. Why m mutex is initialized with 1 and mutexes from the array s are
-  initialized with 0's?
- */
 void *philosopher(){ //it would be nice if it could be switched to int
   pthread_mutex_lock(&m);
   counter++;
   int id = counter; //as each thread must have unique id
   pthread_mutex_unlock(&m);
-  sleep(2);
+  usleep(200);
   printf("Hi, my name is: %d\n", id);
   int j = 0;
   while(j < 3){
@@ -81,9 +64,8 @@ void *philosopher(){ //it would be nice if it could be switched to int
     usleep(200);
     grab_forks(id);
     usleep(200);
-    //    if(state[counter] == EATING) //should it be here?
     put_away_forks(id);
-    usleep(200);
+    usleep(500);
   }
   return 0;
 }
@@ -115,3 +97,15 @@ int main(){
   //  pthread_exit(NULL);
   printf("The End\n");
 }
+/*
+  Additional questions:
+  1. Would it be sufficient just to add to the old algorithm from task5
+  additional mutex variable to organize critical sections in functions
+  grab_forks() and put_away_forks() for making changes to values of two mutexes
+  indivisably?  If not, why?
+  - It wouldn't be sufficient as additional mutex doesn't make a difference - locking one of them results in that just one thread can access the locked region of code, whereas earlier we were working on processes and locking just two semaphores in the set did not result in blocking of all processes - only the processes that were trying to access the same samaphore that was blocked. Consequently, if one would try the mutex approach to the previous algorithm, then never two philosopers could eat at the same time.
+
+  2. Why m mutex is initialized with 1 and mutexes from the array s are
+  initialized with 0's?
+  - The mutex (m)  variable is initialized with 1 as if it was set to 0 initally, then it would mean that it is block on the start, which is unwanted behaviour. Whereas the conditional (cond[N]) variable is initialized with 0 on start to ensure that all philosophers who are not currently eating by default will wait for the signal (which will be send after one philosopher finishes eating.
+ */
